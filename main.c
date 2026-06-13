@@ -21,9 +21,12 @@
 #include "buzzer.h"
 #include "w25q64.h"
 #include "data_log.h"
+#include "bsp_wdg.h"
 #include <stdio.h>
 
-#define PAGE_COUNT  3                    /* OLED 页面总数 */
+#define PAGE_COUNT      3               /* OLED 页面总数 */
+#define ALARM_SMOKE_PCT  70              /* 烟雾报警阈值 */
+#define ALARM_TEMP_C     50              /* 温度报警阈值 */
 
 int main(void)
 {
@@ -58,14 +61,6 @@ int main(void)
     RGB_Init();
     Buzzer_Init();
 
-    /* 强制拉高蜂鸣器 PA8，防止上电误响 */
-    GPIO_InitTypeDef gpio_init;
-    gpio_init.GPIO_Pin   = GPIO_Pin_8;
-    gpio_init.GPIO_Mode  = GPIO_Mode_Out_PP;
-    gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOA, &gpio_init);
-    GPIO_SetBits(GPIOA, GPIO_Pin_8);
-
     /* ---------- W25Q64 Flash 初始化 ---------- */
     printf("\r\n=== System Start ===\r\n");
     W25Q64_Init();
@@ -90,6 +85,9 @@ int main(void)
     Rain_Init();
     MQ2_Init();
 
+    /* ---------- 看门狗 ---------- */
+    IWDG_Init();
+
     /* ---------- 启动画面 ---------- */
     OLED_Clear();
     OLED_ShowString(0, 0, "SYSTEM START");
@@ -99,6 +97,8 @@ int main(void)
     /* ==================== 主循环 ==================== */
     while (1)
     {
+        IWDG_Feed();                            /* 喂狗 */
+
         /* ---- 按键处理 ---- */
         if (Key_GetFlag())                      // PC13 短按
         {
@@ -106,11 +106,10 @@ int main(void)
             OLED_Clear();
             printf("KEY: page=%d\r\n", page);
         }
-        if (Key_LongPressed())                  // PA0 长按
+        if (Key_ClrFlag())                          // PA0 短按清日志
         {
             W25Q64_SectorErase(0);
             Log_Init();
-            flash_ok = 1;
             OLED_Clear();
             OLED_ShowString(0, 0, "Log Cleared!");
             delay_ms(1000);
@@ -130,7 +129,11 @@ int main(void)
         mq2_pct  = MQ2_ReadPercent();
 
         /* ---- 报警判断 ---- */
-        if (mq2_pct > 70)
+        uint8_t alarm = 0;
+        if (mq2_pct > ALARM_SMOKE_PCT || temp > ALARM_TEMP_C)
+            alarm = 1;
+
+        if (alarm)
         {
             RGB_SetColor(RGB_RED);
             GPIO_ResetBits(GPIOA, GPIO_Pin_8);   /* 蜂鸣器响 */
@@ -163,7 +166,7 @@ int main(void)
                 OLED_ShowString(0, 0, buf);
                 sprintf(buf, "Smoke:%3d%%      ", mq2_pct);
                 OLED_ShowString(0, 2, buf);
-                sprintf(buf, "Security: OK    ");
+                sprintf(buf, alarm ? "ALARM!        " : "Security: OK  ");
                 OLED_ShowString(0, 4, buf);
                 sprintf(buf, "Log:%4d        ", flash_ok ? Log_Count() : 0);
                 OLED_ShowString(0, 6, buf);

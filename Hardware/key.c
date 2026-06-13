@@ -4,9 +4,10 @@
  */
 
 #include "key.h"
+#include "delay.h"
 
 static volatile uint8_t short_flag = 0;    // PC13 短按标志
-static volatile uint8_t long_flag  = 0;    // PA0 长按标志
+static volatile uint8_t clr_flag   = 0;    // PA0 短按标志（清日志）
 
 /**
  * @brief  初始化按键（PC13 + PA0），配置外部中断
@@ -71,8 +72,7 @@ void EXTI15_10_IRQHandler(void)
     {
         EXTI_ClearITPendingBit(EXTI_Line13);
 
-        /* 简单延时消抖 */
-        for (volatile uint32_t i = 0; i < 10000; i++);
+        delay_us(20000);   /* 20ms 消抖 */
 
         if (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) == 0)
             short_flag = 1;
@@ -80,7 +80,7 @@ void EXTI15_10_IRQHandler(void)
 }
 
 /**
- * @brief  EXTI0 中断服务函数（PA0 长按）
+ * @brief  EXTI0 中断服务函数（PA0 清日志键）
  */
 void EXTI0_IRQHandler(void)
 {
@@ -88,10 +88,10 @@ void EXTI0_IRQHandler(void)
     {
         EXTI_ClearITPendingBit(EXTI_Line0);
 
-        for (volatile uint32_t i = 0; i < 10000; i++);
+        delay_us(20000);   /* 20ms 消抖 */
 
         if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == 0)
-            long_flag = 1;
+            clr_flag = 1;
     }
 }
 
@@ -110,14 +110,14 @@ uint8_t Key_GetFlag(void)
 }
 
 /**
- * @brief  获取 PA0 长按标志并清除
- * @return 1 = 有长按事件
+ * @brief  获取 PA0 清日志键标志并清除
+ * @return 1 = 有按键按下
  */
-uint8_t Key_LongPressed(void)
+uint8_t Key_ClrFlag(void)
 {
-    if (long_flag)
+    if (clr_flag)
     {
-        long_flag = 0;
+        clr_flag = 0;
         return 1;
     }
     return 0;

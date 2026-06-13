@@ -1,6 +1,6 @@
 /**
  * @file    delay.h
- * @brief   延时函数 - DWT 微秒延时 + 非阻塞毫秒延时
+ * @brief   延时函数 - DWT 微秒延时 + 毫秒延时
  */
 
 #ifndef __DELAY_H
