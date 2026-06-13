@@ -1,4 +1,4 @@
-#include "bsp_usart.h"
+﻿#include "bsp_usart.h"
 #include <stdio.h>
 
 static uint8_t tx_buf[256];

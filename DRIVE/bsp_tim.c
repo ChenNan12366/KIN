@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    bsp_tim.c
  * @brief   TIM2 提供 1ms 节拍，通道2 内部触发 ADC（PA1 被手动恢复为 GPIO）
  */

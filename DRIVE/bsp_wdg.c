@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    bsp_wdg.c
  * @brief   IWDG 独立看门狗 ~4 秒超时复位
  * @note    LSI ≈ 40kHz, Prescaler=128 → 312.5Hz, Reload=1250 → 4s

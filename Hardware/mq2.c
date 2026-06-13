@@ -1,4 +1,4 @@
-#include "mq2.h"
+﻿#include "mq2.h"
 #include "bsp_adc.h"
 
 static uint16_t mq2_filtered = 0;

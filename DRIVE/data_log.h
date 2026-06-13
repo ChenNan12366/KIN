@@ -1,4 +1,4 @@
-#ifndef __DATA_LOG_H
+﻿#ifndef __DATA_LOG_H
 #define __DATA_LOG_H
 #include "stm32f10x.h"
 

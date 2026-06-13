@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    key.c
  * @brief   外部中断 EXTI + 软件消抖
  */

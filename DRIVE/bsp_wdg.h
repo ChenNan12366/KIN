@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    bsp_wdg.h
  * @brief   IWDG 独立看门狗驱动（~4 秒超时）
  */

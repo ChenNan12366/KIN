@@ -1,4 +1,4 @@
-#include "soil.h"
+﻿#include "soil.h"
 #include "bsp_adc.h"
 
 static uint16_t soil_filtered = 0;

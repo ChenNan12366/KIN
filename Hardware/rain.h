@@ -1,4 +1,4 @@
-#ifndef __RAIN_H
+﻿#ifndef __RAIN_H
 #define __RAIN_H
 #include "stm32f10x.h"
 

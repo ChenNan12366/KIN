@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    soil.h
  * @brief   土壤湿度传感器（PA4，ADC1_CH4）
  */

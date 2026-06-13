@@ -1,4 +1,4 @@
-#include "pot.h"
+﻿#include "pot.h"
 #include "bsp_adc.h"
 
 static uint16_t pot_filtered = 0;

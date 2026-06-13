@@ -1,4 +1,4 @@
-#ifndef __POT_H
+﻿#ifndef __POT_H
 #define __POT_H
 #include "stm32f10x.h"
 

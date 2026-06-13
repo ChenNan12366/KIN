@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file    main.c
  * @brief   智能环境监测终端 - 主程序
  * @note    OLED 三页显示、按键交互、报警、Flash 存储、串口打印
