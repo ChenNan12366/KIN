@@ -136,12 +136,12 @@ int main(void)
         if (alarm)
         {
             RGB_SetColor(RGB_RED);
-            GPIO_ResetBits(GPIOA, GPIO_Pin_8);   /* 蜂鸣器响 */
+            Buzzer_On();
         }
         else
         {
             RGB_SetColor(RGB_GREEN);
-            GPIO_SetBits(GPIOA, GPIO_Pin_8);     /* 蜂鸣器停 */
+            Buzzer_Off();
         }
 
         /* ---- OLED 显示刷新（每 500ms）---- */
