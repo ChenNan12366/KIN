@@ -1,4 +1,4 @@
-﻿#include "data_log.h"
+#include "data_log.h"
 #include "w25q64.h"
 #include <string.h>
 
@@ -35,7 +35,10 @@ void Log_Init(void)
     log_count  = (header[0] << 8) | header[1];
     write_addr = ((uint32_t)header[4] << 24) | ((uint32_t)header[5] << 16) |
                  ((uint32_t)header[6] << 8) | header[7];
-    if (log_count > 100000) log_count = 0;
+    /* 合法性校验：Flash 擦除后为 0xFF，log_count=0xFFFF=65535，write_addr=0xFFFFFFFF
+       必须拦截这些无效值，否则重启后显示 65535 条日志 */
+    if (log_count == 0xFFFF || log_count > 60000) log_count = 0;
+    if (write_addr == 0xFFFFFFFF || write_addr > 8 * 1024 * 1024) write_addr = HEADER_SIZE;
     if (write_addr < HEADER_SIZE) write_addr = HEADER_SIZE;
 }
 
