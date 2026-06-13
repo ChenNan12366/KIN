@@ -17,7 +17,7 @@
 void     W25Q64_Init(void);
 uint32_t W25Q64_ReadID(void);
 void     W25Q64_ReadData(uint32_t addr, uint8_t *buf, uint32_t len);
-void     W25Q64_PageProgram(uint32_t addr, uint8_t *buf, uint16_t len);
-void     W25Q64_SectorErase(uint32_t addr);
+uint8_t  W25Q64_PageProgram(uint32_t addr, uint8_t *buf, uint16_t len);
+uint8_t  W25Q64_SectorErase(uint32_t addr);
 
 #endif

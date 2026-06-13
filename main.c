@@ -2,7 +2,8 @@
  * @file    main.c
  * @brief   智能环境监测终端 - 主程序
  * @note    OLED 三页显示、按键交互、报警、Flash 存储、串口打印
- *          PA1 在 TIM2 初始化后被手动恢复为 GPIO，确保 RGB 正常。
+ *          PA1 同时用于 RGB 红灯和 TIM2 CH2；TIM2 CH2 仅作内部 ADC 触发，
+ *          不驱动 GPIO 输出，避免与 RGB 红灯冲突。
  */
 
 #include "stm32f10x.h"
@@ -12,6 +13,7 @@
 #include "bsp_adc.h"
 #include "bsp_usart.h"
 #include "bsp_tim.h"
+#include "adc_filter.h"
 #include "soil.h"
 #include "pot.h"
 #include "rain.h"
@@ -31,7 +33,7 @@
 int main(void)
 {
     uint8_t  temp = 25, humi = 60;       /* 温湿度默认值 */
-    uint16_t soil_pct, pot_pct, rain_pct, mq2_pct;
+    uint8_t  soil_pct, pot_pct, rain_pct, mq2_pct;  /* 0~100 百分比（uint8_t 够用） */
     uint8_t  page = 0;                   /* 当前显示页面 */
     uint32_t last_save_time    = 0;      /* 上次存储时间戳 */
     uint32_t last_print_time   = 0;      /* 上次串口打印时间戳 */
@@ -43,15 +45,6 @@ int main(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  /* 2位抢占，2位子优先级 */
     delay_init();
     BSP_TIM_Init();                       /* 启动 1ms 系统节拍 */
-
-    /* ===== 修复 PA1 被 TIM2 占用的问题 ===== */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_InitTypeDef gpio_fix;
-    gpio_fix.GPIO_Pin   = GPIO_Pin_1;
-    gpio_fix.GPIO_Mode  = GPIO_Mode_Out_PP;
-    gpio_fix.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOA, &gpio_fix);
-    GPIO_SetBits(GPIOA, GPIO_Pin_1);      /* 初始拉高，RGB 红灯灭 */
 
     ADC_DMA_Init();                       /* 启动 ADC + DMA 四通道扫描 */
     USART1_Init(115200);                  /* 串口1（DMA 发送） */
@@ -80,6 +73,7 @@ int main(void)
     }
 
     /* ---------- 传感器模块初始化 ---------- */
+    ADC_Filter_Init();                    /* 必须在传感器 Init 之前调用 */
     Soil_Init();
     Pot_Init();
     Rain_Init();
@@ -118,7 +112,8 @@ int main(void)
         }
 
         /* ---- 传感器数据读取 ---- */
-        if (DHT11_ReadFiltered(&temp, &humi) != 0)
+        uint8_t dht11_ok = (DHT11_ReadFiltered(&temp, &humi) == 0);
+        if (!dht11_ok)
         {
             temp = 25;
             humi = 60;
@@ -196,8 +191,9 @@ int main(void)
         if (timer_tick_ms - last_print_time >= 2000)
         {
             last_print_time = timer_tick_ms;
-            printf("T:%d H:%d | Soil:%d Rain:%d Pot:%d Smoke:%d | Page:%d\r\n",
-                   temp, humi, soil_pct, rain_pct, pot_pct, mq2_pct, page);
+            printf("T:%d H:%d | Soil:%d Rain:%d Pot:%d Smoke:%d | %s | Page:%d\r\n",
+                   temp, humi, soil_pct, rain_pct, pot_pct, mq2_pct,
+                   dht11_ok ? "OK" : "ERR", page);
         }
 				
     }

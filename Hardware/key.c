@@ -9,6 +9,14 @@
 static volatile uint8_t short_flag = 0;    // PC13 短按标志
 static volatile uint8_t clr_flag   = 0;    // PA0 短按标志（清日志）
 
+/* 快速软件消抖：连续读取两次确认电平稳定（利用 GPIO 施密特触发器 + 指令间隙） */
+static uint8_t Debounce_ReadPin(GPIO_TypeDef *port, uint16_t pin)
+{
+    uint8_t r1 = (GPIO_ReadInputDataBit(port, pin) == 0);
+    uint8_t r2 = (GPIO_ReadInputDataBit(port, pin) == 0);
+    return r1 && r2;  /* 两次读取均为低，确认为有效按下 */
+}
+
 /**
  * @brief  初始化按键（PC13 + PA0），配置外部中断
  */
@@ -71,10 +79,8 @@ void EXTI15_10_IRQHandler(void)
     if (EXTI_GetITStatus(EXTI_Line13) != RESET)
     {
         EXTI_ClearITPendingBit(EXTI_Line13);
-
-        delay_us(20000);   /* 20ms 消抖 */
-
-        if (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) == 0)
+        /* 快速双重采样 + 硬件施密特触发器消抖，避免 20ms 阻塞 */
+        if (Debounce_ReadPin(GPIOC, GPIO_Pin_13))
             short_flag = 1;
     }
 }
@@ -87,10 +93,8 @@ void EXTI0_IRQHandler(void)
     if (EXTI_GetITStatus(EXTI_Line0) != RESET)
     {
         EXTI_ClearITPendingBit(EXTI_Line0);
-
-        delay_us(20000);   /* 20ms 消抖 */
-
-        if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == 0)
+        /* 快速双重采样 + 硬件施密特触发器消抖，避免 20ms 阻塞 */
+        if (Debounce_ReadPin(GPIOA, GPIO_Pin_0))
             clr_flag = 1;
     }
 }

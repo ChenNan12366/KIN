@@ -20,9 +20,9 @@ void BSP_TIM_Init(void)
     tim.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM2, &tim);
 
-    /* 通道2 使能输出（产生内部触发信号给 ADC），但 PA1 会被短暂占用 */
+    /* 通道2 产生内部触发信号给 ADC，但不驱动 GPIO（避免占用 PA1） */
     oc.TIM_OCMode       = TIM_OCMode_PWM1;
-    oc.TIM_OutputState  = TIM_OutputState_Enable;   // 关键：必须使能才能触发 ADC
+    oc.TIM_OutputState  = TIM_OutputState_Disable;  /* 不输出到 PA1，仅作内部触发 */
     oc.TIM_Pulse        = 500;
     oc.TIM_OCPolarity   = TIM_OCPolarity_High;
     TIM_OC2Init(TIM2, &oc);
