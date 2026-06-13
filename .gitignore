@@ -1,0 +1,36 @@
+# Keil build artifacts
+Objects/
+Listings/
+*.uvgui.*
+*.uvopt
+*.uvproj
+*.Administrator
+*.scvd
+*.uvprojx
+*.uvoptx
+*.bak
+*.crf
+*.d
+*.o
+*.dep
+*.lnp
+*.plg
+*.axf
+*.htm
+*.map
+*.hex
+*.bin
+*.iex
+*.sct
+*.lst
+*.build_log.htm
+JLinkLog.txt
+JLinkSettings.ini
+*.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
